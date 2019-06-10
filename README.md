@@ -54,4 +54,4 @@ FileManager manages the files and its blocks in progress. Currently it is using 
 Manages Http Connection pool for bulk Http Requests. This class continuously tunes the connection pool to allot more connections to most commonly used URL.
 
 ### HttpGetBlockProcessor
-Block processor worker thread responsible to making Http Get calls for each URL in a block. This class works of a BlockingQueue to pull its work.
+Block processor worker thread is responsible for making Http Get calls for each URL in a block. This class works of a BlockingQueue to pull its work.

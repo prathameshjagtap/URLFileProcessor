@@ -58,18 +58,22 @@ public class FileManager {
 	}
 	
 	public FileBlock getFileBlock(){
+		File file;
+		int block;
 		
 		lock.lock();
+		try{
+			if(files.size() == 0)
+				throw new RuntimeException("No more files");
 
-		if(files.size() == 0)
-			throw new RuntimeException("No more files");
-
-		File file = files.keySet().iterator().next();
-		file.length();
-		int block = files.get(file);
-		files.put(file, block + 1);
-		
-		lock.unlock();
+			file = files.keySet().iterator().next();
+			file.length();
+			block = files.get(file);
+			files.put(file, block + 1);
+			
+		} finally {
+			lock.unlock();
+		}
 				
 		return new FileBlock(file, block);
 	}

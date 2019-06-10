@@ -14,7 +14,7 @@ import org.apache.http.util.EntityUtils;
 import test.urlprocessor.ProgressReport;
 
 /**
- * Block processor worker thread responsible to making Http Get calls for each
+ * Block processor worker thread is responsible for making Http Get calls for each
  * URL in a block. This class works of a BlockingQueue to pull its work.
  * @author prathameshjagtap
  *
@@ -36,7 +36,7 @@ public class HttpGetBlockProcessor implements Callable<Boolean>{
 		this.workQueues = workQueues;
 		this.progress = progress;
 		this.httpClientManager = HttpClientManager.getInstance();
-		this.previousStepIndex = stepIndex;
+		this.previousStepIndex = stepIndex - 1;
 	}
 	
 	@Override
