@@ -28,7 +28,7 @@ public class AsyncFileReader implements Callable<Boolean>{
 		this.fileManager = fileManager;
 		this.workQueue = workQueue;
 		this.contents = new byte[BATCH_SIZE];
-		this.residue = new byte[100];
+		this.residue = new byte[4096];
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public class AsyncFileReader implements Callable<Boolean>{
 		reader.seek(fileBlock.getBlockNumber() * BATCH_SIZE + contentLength - 1);
 		if((char)reader.read() != '\n') {
 			reader.seek((fileBlock.getBlockNumber() + 1) * BATCH_SIZE);
-			int dataRead = reader.read(residue, 0, 100);
+			int dataRead = reader.read(residue, 0, residue.length);
 			if(dataRead != -1) {
 				lines.set(lines.size() - 1, lines.get(lines.size() - 1) + new String(residue, 0, dataRead).split("\n")[0]);
 			}

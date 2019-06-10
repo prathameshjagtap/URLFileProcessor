@@ -57,10 +57,7 @@ public class HttpGetBlockProcessor implements Callable<Boolean>{
 			HttpClientManager httpClientManager = HttpClientManager.getInstance();
 			httpClientManager.tune(urls);
 			
-			while(!urls.isEmpty()){
-				urls = executeUrls(urls);
-			}
-
+			executeUrls(urls);
 		}
 		
 		return true;
@@ -69,13 +66,10 @@ public class HttpGetBlockProcessor implements Callable<Boolean>{
 	/**
 	 * Execute Get all the URLs in list.
 	 * @param urls URLs to execute
-	 * @return Failed URLs List
 	 */
-	private List<String> executeUrls(List<String> urls) {
+	private void executeUrls(List<String> urls) {
 		int failed = 0;
 		int success = 0;
-		
-		List<String> failedUrls = new ArrayList<>();
 		
 		for (String url : urls) {
 			try {
@@ -92,12 +86,11 @@ public class HttpGetBlockProcessor implements Callable<Boolean>{
 				else
 					failed++;
 			} catch (IOException e) {
-				failedUrls.add(url);
+				failed++;
 			}
 		}
 		
 		progress.add(success, failed);
-		return failedUrls;
 	}
 
 }
