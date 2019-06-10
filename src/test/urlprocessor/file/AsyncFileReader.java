@@ -111,7 +111,9 @@ public class AsyncFileReader implements Callable<Boolean>{
 	private void skipFirstLineIfNotCompleteLine(FileBlock fileBlock, RandomAccessFile reader, StringTokenizer tokenizer) throws IOException {
 		if(fileBlock.getBlockNumber() > 0){
 			reader.seek(fileBlock.getBlockNumber() * BATCH_SIZE - 1);
-			if( '\n' != (char)reader.read()){
+			char prevBlockLastChar = (char)reader.read();
+			char currentBlockFirstChar = (char)reader.read();
+			if( '\n' != prevBlockLastChar && '\n' != currentBlockFirstChar){
 				tokenizer.nextToken();
 			}
 		}
@@ -131,7 +133,9 @@ public class AsyncFileReader implements Callable<Boolean>{
 			reader.seek((fileBlock.getBlockNumber() + 1) * BATCH_SIZE);
 			int dataRead = reader.read(residue, 0, residue.length);
 			if(dataRead != -1) {
-				lines.set(lines.size() - 1, lines.get(lines.size() - 1) + new String(residue, 0, dataRead).split("\n")[0]);
+				String residueStr = new String(residue, 0, dataRead).split("\n")[0];
+				if(residueStr.trim().length() > 0)
+					lines.set(lines.size() - 1, lines.get(lines.size() - 1) + residueStr);
 			}
 		}
 	}

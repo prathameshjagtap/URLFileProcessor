@@ -6,6 +6,7 @@ This project fetch URLs from files/directory and make bulk HTTP get calls.
 
 * JDK 8
 * Maven
+* Git
 
 ## How to run
 
