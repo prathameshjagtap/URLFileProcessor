@@ -14,6 +14,11 @@ import test.urlprocessor.file.FileManager;
 import test.urlprocessor.http.HttpClientManager;
 import test.urlprocessor.http.HttpGetBlockProcessor;
 
+/**
+ * Main class responsible for Driving the URL File processing.
+ * @author prathameshjagtap
+ *
+ */
 public class URLFileProcessor {
 
 	private final int NO_OF_IO_TASK_PER_CORE = 50;
@@ -26,6 +31,12 @@ public class URLFileProcessor {
 	private ExecutorService threadPool;
 	private FileManager fileManager;
 	
+	/**
+	 * Initialize the Thread pool according to available cores.
+	 * @param cores
+	 * @param directory
+	 * @throws Exception
+	 */
 	public URLFileProcessor(int cores, String directory) throws Exception {
 		
 		NO_OF_CORES = cores;
@@ -41,6 +52,15 @@ public class URLFileProcessor {
 		
 	}
 	
+	/**
+	 * <ol>
+	 * 	<li>Starts Progress Tracker thread</li>
+	 * 	<li>Starts File Reader thread</li>
+	 * 	<li>Starts URL Processor thread</li>
+	 * 	<li>Wait for file reader thread to complete</li>
+	 * 	<li>Wait for Processor thread to complete</li>
+	 * <ol>
+	 */
 	private void process() {
 		
 		long startTime = System.currentTimeMillis();
@@ -59,32 +79,23 @@ public class URLFileProcessor {
 		
 		threadPool.shutdown();
 		try {
-			threadPool.awaitTermination(1, TimeUnit.DAYS);
+			threadPool.awaitTermination(1, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private void waitForProcessorThreadsToComplete(List<Future<Boolean>> urlReadFutures) {
-		for (Future<Boolean> future : urlReadFutures) {
-			try{
-				future.get();
-			} catch (InterruptedException | ExecutionException e) {
-				System.out.println("ERROR IN A THREAD");
-				e.printStackTrace();
-			}
+	/**
+	 * Add File Reader worker thread to the thread pool. As the are fast processing thread, we use
+	 * all the cores.
+	 * @return
+	 */
+	private List<Future<Boolean>> startFileReaderThreads() {
+		List<Future<Boolean>> fileReadFutures = new ArrayList<>();
+		for (int i = 0; i < NO_OF_CORES; i++) {
+			fileReadFutures.add(threadPool.submit(new AsyncFileReader(fileManager, workQueue)));
 		}
-		progress.markComplete(1);
-
-	}
-
-	private List<Future<Boolean>> startProcessorThreads() {
-		List<Future<Boolean>> urlReadFutures = new ArrayList<>();
-		for (int i = 0; i < NO_OF_CORES * NO_OF_IO_TASK_PER_CORE; i++) {
-			urlReadFutures.add(threadPool.submit(new HttpGetBlockProcessor(workQueue, progress, 1)));
-		}
-
-		return urlReadFutures;
+		return fileReadFutures;
 	}
 
 	private void waitForFileReaderThreadsToComplete(List<Future<Boolean>> fileReadFutures) {
@@ -101,14 +112,36 @@ public class URLFileProcessor {
 		System.out.println("FILE READ COMPLETE");
 	}
 
-	private List<Future<Boolean>> startFileReaderThreads() {
-		List<Future<Boolean>> fileReadFutures = new ArrayList<>();
-		for (int i = 0; i < NO_OF_CORES; i++) {
-			fileReadFutures.add(threadPool.submit(new AsyncFileReader(fileManager, workQueue)));
+	/**
+	 * Add Http Get Processor threads to the thread pool. As the are IO intensize thread and spend lot of time waiting,
+	 *  we use multiple of available cores.
+	 * @return
+	 */
+	private List<Future<Boolean>> startProcessorThreads() {
+		List<Future<Boolean>> urlReadFutures = new ArrayList<>();
+		for (int i = 0; i < NO_OF_CORES * NO_OF_IO_TASK_PER_CORE; i++) {
+			urlReadFutures.add(threadPool.submit(new HttpGetBlockProcessor(workQueue, progress, 1)));
 		}
-		return fileReadFutures;
+
+		return urlReadFutures;
 	}
 
+	private void waitForProcessorThreadsToComplete(List<Future<Boolean>> urlReadFutures) {
+		for (Future<Boolean> future : urlReadFutures) {
+			try{
+				future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				System.out.println("ERROR IN A THREAD");
+				e.printStackTrace();
+			}
+		}
+		progress.markComplete(1);
+
+	}
+	
+	/**
+	 * Submits a thread that runs every 5 secs to check Progress.
+	 */
 	private void startProgressTracker() {
 		threadPool.submit(new Runnable() {
 			

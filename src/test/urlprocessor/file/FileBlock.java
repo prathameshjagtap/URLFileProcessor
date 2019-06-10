@@ -2,6 +2,11 @@ package test.urlprocessor.file;
 
 import java.io.File;
 
+/**
+ * Represents a File Block. It is combination of File and the Block of content in the file.
+ * @author prathameshjagtap
+ *
+ */
 public class FileBlock {
 
 	private File file;
