@@ -56,3 +56,9 @@ Manages Http Connection pool for bulk Http Requests. This class continuously tun
 
 ### HttpGetBlockProcessor
 Block processor worker thread is responsible for making Http Get calls for each URL in a block. This class works of a BlockingQueue to pull its work.
+
+## Improvements
+* Use ReadWrite locks for FileBlock reader under FileManager.hasFile()
+* Use CompletableFutures for IO calls
+* Use LongAdder for ProgressReport
+* Use CountDownLatch for FileReadThread completion instead of Future<Boolean>
